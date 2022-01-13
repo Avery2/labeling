@@ -14,17 +14,21 @@ def readFrame(cap, buff: list, redo: list):
     :param cap: cv2.VideoCapture instance
     :return: Returns frame and its gray analog
     '''
-    BUFF_SIZE = 20
+    BUFF_SIZE = 50
 
-    ret, frame = cap.read()
-    if not ret:
-        return ret, None
+    if (redo):
+        frame = redo.pop(0)
+        haveNextFrame = True
+    else:
+        haveNextFrame, frame = cap.read()
+    if not haveNextFrame:
+        return haveNextFrame, None
 
     if len(buff) >= BUFF_SIZE:
         buff.pop(0)
     buff.append(frame)
 
-    return ret, frame
+    return haveNextFrame, frame
 
 if __name__ == '__main__':
     labels = []
@@ -46,15 +50,20 @@ if __name__ == '__main__':
         # if set to 0 will only move forward when something is pressed
         pressedKey = cv.waitKey(0)
 
-        sys.stdout.write(moveleft() + f"Pressed key {chr(pressedKey & 0xFF)} {frame_i=}")
+        sys.stdout.write(moveleft() + f"Pressed key {chr(pressedKey & 0xFF)} {frame_i=:04} {len(labels)=:04}")
         sys.stdout.flush()
 
         if pressedKey & 0xFF == ord('q'):
             break
         if pressedKey & 0xFF == ord('b'):
             # TODO: implement undo
-            frame_i -= 1
-            break
+            if buff:
+                lastFrame = buff.pop()
+                redo.insert(0, lastFrame)
+                frame = lastFrame
+                haveNextFrame = True
+                frame_i -= 1
+                labels.pop()
         else:
             labels.append(chr(pressedKey & 0xFF))
             frame_i += 1
