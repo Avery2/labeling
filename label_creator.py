@@ -75,7 +75,7 @@ if __name__ == '__main__':
     haveNextFrame, frame = lc.cap.read()
 
     # iterate over every frame
-    while(lc.cap.isOpened()):
+    while(lc.cap.isOpened()):  # TODO: This isn't a great loop invariant now because cap doesn't get closed until the program terminates, so the program now relies on haveNextFrame being false to break out of loop.
         if not haveNextFrame:
             break
         cv.imshow(f"input", frame)

@@ -8,3 +8,4 @@ The label creator will take in a video and help to label each frame. It will pau
 - To change file change value of `VIDEO_PATH` in `label_creator.py`
 - Press any character to apply label to current frame (hold key to label multiple)
 - To change output CSV path change `OUTPUT_CSV_PATH` in `label_creator.py`
+- Press `b` to go backwards a few frames and undo labels you did. The buffer is 100 frames but you can change this.
