@@ -82,6 +82,7 @@ if __name__ == '__main__':
         pressedKey = cv.waitKey(0)  # if set to 0 will only move forward when something is pressed
         printOverwrite(f"Pressed key {chr(pressedKey & 0xFF)} {lc.frameNum=:04} {len(lc.labels)=:04}")
 
+        # handle keypress
         if pressedKey & 0xFF == ord('q'):
             break
         elif pressedKey & 0xFF == ord('b'):
