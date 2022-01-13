@@ -3,7 +3,6 @@ import cv2 as cv
 import csv
 
 
-
 def printOverwrite(s: str) -> None:
     """Prints something onn the same line, overwriting that was last written. Useful for a recurring value like a loading bar."""
 
@@ -13,6 +12,7 @@ def printOverwrite(s: str) -> None:
 
     sys.stdout.write(moveleft() + s)
     sys.stdout.flush()
+
 
 def readFrame(cap, buff: list, redo: list):
     '''
@@ -36,14 +36,16 @@ def readFrame(cap, buff: list, redo: list):
 
     return haveNextFrame, frame
 
+
 if __name__ == '__main__':
+    FILENAME = "SideView"
+    VIDEO_PATH = f"data/{FILENAME}.mp4"
+    OUTPUT_CSV_PATH = f"labels/{FILENAME}.csv"
+
     labels = []
     buff = []
     redo = []
     frame_i = 0
-    FILENAME = "SideView"
-    VIDEO_PATH = f"data/{FILENAME}.mp4"
-    OUTPUT_CSV_PATH = f"labels/{FILENAME}.csv"
     cap = cv.VideoCapture(VIDEO_PATH)
     haveNextFrame, frame = cap.read()
 
@@ -61,7 +63,6 @@ if __name__ == '__main__':
         if pressedKey & 0xFF == ord('q'):
             break
         if pressedKey & 0xFF == ord('b'):
-            # TODO: implement undo
             if buff:
                 lastFrame = buff.pop()
                 redo.insert(0, lastFrame)
@@ -84,4 +85,3 @@ if __name__ == '__main__':
         writer.writerow(("Frame", "Label"))
         for i, label in enumerate(labels):
             writer.writerow((i + 1, label))
-
