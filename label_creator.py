@@ -14,27 +14,56 @@ def printOverwrite(s: str) -> None:
     sys.stdout.flush()
 
 
-def readFrame(cap, buff: list, redo: list):
-    '''
-    Reads the next frame using cap from cv2.VideoCapture
-    :param cap: cv2.VideoCapture instance
-    :return: Returns frame and its gray analog
-    '''
-    BUFF_SIZE = 50
+class LabelCreator:
+    """Creates label for video."""
 
-    if (redo):
-        frame = redo.pop(0)
-        haveNextFrame = True
-    else:
-        haveNextFrame, frame = cap.read()
-    if not haveNextFrame:
-        return haveNextFrame, None
+    def __init__(self, videoPath, buffSize=50):
+        self.labels = []
+        self.buffer = []
+        self.redo = []
+        self.frameNum = 0
+        self.buffSize = buffSize
+        self.cap = cv.VideoCapture(videoPath)
 
-    if len(buff) >= BUFF_SIZE:
-        buff.pop(0)
-    buff.append(frame)
+    def readFrame(self):
+        """Reads and returns the next frame using cap from cv2.VideoCapture"""
+        if (self.redo):
+            frame = self.redo.pop(0)
+            haveNextFrame = True
+        else:
+            haveNextFrame, frame = self.cap.read()
+        if not haveNextFrame:
+            return haveNextFrame, None
+        if len(self.buffer) >= self.buffSize:
+            self.buffer.pop(0)
+        self.buffer.append(frame)
+        return haveNextFrame, frame
 
-    return haveNextFrame, frame
+    def undo(self):
+        """Go backwards a frame and undo labeling"""
+        if self.buffer:
+            lastFrame = self.buffer.pop()
+            self.redo.insert(0, lastFrame)
+            self.frameNum -= 1
+            self.labels.pop()
+            return True, lastFrame
+        return False, None
+
+    def labelFrame(self, pressedKey):
+        """Labels current frame"""
+        self.labels.append(chr(pressedKey & 0xFF))
+        pass
+
+    def nextFrame(self):
+        """Returns the next frame, if it exists."""
+        self.frameNum += 1
+        haveNextFrame, frame = self.readFrame()
+        return haveNextFrame, frame
+
+    def __del__(self):
+        # The following frees up resources and closes all windows
+        self.cap.release()
+        cv.destroyAllWindows()
 
 
 if __name__ == '__main__':
@@ -42,46 +71,28 @@ if __name__ == '__main__':
     VIDEO_PATH = f"data/{FILENAME}.mp4"
     OUTPUT_CSV_PATH = f"labels/{FILENAME}.csv"
 
-    labels = []
-    buff = []
-    redo = []
-    frame_i = 0
-    cap = cv.VideoCapture(VIDEO_PATH)
-    haveNextFrame, frame = cap.read()
+    lc = LabelCreator(VIDEO_PATH)
+    haveNextFrame, frame = lc.cap.read()
 
     # iterate over every frame
-    while(cap.isOpened()):
+    while(lc.cap.isOpened()):
         if not haveNextFrame:
             break
         cv.imshow(f"input", frame)
-
-        # if set to 0 will only move forward when something is pressed
-        pressedKey = cv.waitKey(0)
-
-        printOverwrite(f"Pressed key {chr(pressedKey & 0xFF)} {frame_i=:04} {len(labels)=:04}")
+        pressedKey = cv.waitKey(0)  # if set to 0 will only move forward when something is pressed
+        printOverwrite(f"Pressed key {chr(pressedKey & 0xFF)} {lc.frameNum=:04} {len(lc.labels)=:04}")
 
         if pressedKey & 0xFF == ord('q'):
             break
-        if pressedKey & 0xFF == ord('b'):
-            if buff:
-                lastFrame = buff.pop()
-                redo.insert(0, lastFrame)
-                frame = lastFrame
-                haveNextFrame = True
-                frame_i -= 1
-                labels.pop()
+        elif pressedKey & 0xFF == ord('b'):
+            haveNextFrame, frame = lc.undo()
         else:
-            labels.append(chr(pressedKey & 0xFF))
-            frame_i += 1
-            haveNextFrame, frame = readFrame(cap, buff, redo)
-
-    # The following frees up resources and closes all windows
-    cap.release()
-    cv.destroyAllWindows()
+            lc.labelFrame(pressedKey)
+            haveNextFrame, frame = lc.nextFrame()
 
     # write data
     with open(OUTPUT_CSV_PATH, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(("Frame", "Label"))
-        for i, label in enumerate(labels):
+        for i, label in enumerate(lc.labels):
             writer.writerow((i + 1, label))
