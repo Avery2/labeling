@@ -3,10 +3,16 @@ import cv2 as cv
 import csv
 
 
-def moveleft(n=1000):
-    """Returns unicode string to move cursor left by n"""
-    return u"\u001b[{}D".format(n)
 
+def printOverwrite(s: str) -> None:
+    """Prints something onn the same line, overwriting that was last written. Useful for a recurring value like a loading bar."""
+
+    def moveleft(n=1000) -> str:
+        """Returns unicode string to move cursor left by n"""
+        return u"\u001b[{}D".format(n)
+
+    sys.stdout.write(moveleft() + s)
+    sys.stdout.flush()
 
 def readFrame(cap, buff: list, redo: list):
     '''
@@ -50,8 +56,7 @@ if __name__ == '__main__':
         # if set to 0 will only move forward when something is pressed
         pressedKey = cv.waitKey(0)
 
-        sys.stdout.write(moveleft() + f"Pressed key {chr(pressedKey & 0xFF)} {frame_i=:04} {len(labels)=:04}")
-        sys.stdout.flush()
+        printOverwrite(f"Pressed key {chr(pressedKey & 0xFF)} {frame_i=:04} {len(labels)=:04}")
 
         if pressedKey & 0xFF == ord('q'):
             break
@@ -68,8 +73,6 @@ if __name__ == '__main__':
             labels.append(chr(pressedKey & 0xFF))
             frame_i += 1
             haveNextFrame, frame = readFrame(cap, buff, redo)
-
-    # print(" ".join(labels))
 
     # The following frees up resources and closes all windows
     cap.release()
