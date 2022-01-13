@@ -28,8 +28,10 @@ def readFrame(cap, IMG_SIZE=(128, 128)):
 
 labels = []
 frame_i = 0
-FILENAME = "SideView"
-VIDEO_PATH = f"data/{FILENAME}.mp4"
+#FILENAME = "SideView"
+FILENAME = "FrontView"
+#VIDEO_PATH = f"data/{FILENAME}.mp4"
+VIDEO_PATH = f"../videos/pushups/{FILENAME}.mp4"
 OUTPUT_CSV_PATH = f"labels/{FILENAME}.csv"
 
 if __name__ == '__main__':
@@ -44,7 +46,7 @@ if __name__ == '__main__':
         cv.imshow(f"input", origFrame)
         # if set to 0 will only move forward when something is pressed
         pressedKey = cv.waitKey(0)
-        sys.stdout.write(moveleft() + f"Pressed key {chr(pressedKey & 0xFF)} {frame_i=}")
+        sys.stdout.write(moveleft() + f"Pressed key {chr(pressedKey & 0xFF)} {frame_i}")
         sys.stdout.flush()
         if pressedKey & 0xFF == ord('q'):
             break
@@ -52,7 +54,7 @@ if __name__ == '__main__':
         labels.append(chr(pressedKey & 0xFF))
         frame_i += 1
     end = time.time()
-    print(f"\nElapsed time: {round(end - start, 5)}s {frame_i=}")
+    print(f"\nElapsed time: {round(end - start, 5)}s {frame_i}")
     # print(" ".join(labels))
     # The following frees up resources and closes all windows
     cap.release()
