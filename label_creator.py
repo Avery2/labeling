@@ -8,21 +8,28 @@ def moveleft(n=1000):
     return u"\u001b[{}D".format(n)
 
 
-def readFrame(cap):
+def readFrame(cap, buff: list, redo: list):
     '''
     Reads the next frame using cap from cv2.VideoCapture
     :param cap: cv2.VideoCapture instance
     :return: Returns frame and its gray analog
     '''
+    BUFF_SIZE = 20
 
     ret, frame = cap.read()
     if not ret:
         return ret, None
 
+    if len(buff) >= BUFF_SIZE:
+        buff.pop(0)
+    buff.append(frame)
+
     return ret, frame
 
 if __name__ == '__main__':
     labels = []
+    buff = []
+    redo = []
     frame_i = 0
     FILENAME = "SideView"
     VIDEO_PATH = f"data/{FILENAME}.mp4"
@@ -46,11 +53,12 @@ if __name__ == '__main__':
             break
         if pressedKey & 0xFF == ord('b'):
             # TODO: implement undo
+            frame_i -= 1
             break
         else:
             labels.append(chr(pressedKey & 0xFF))
             frame_i += 1
-            haveNextFrame, frame = readFrame(cap)
+            haveNextFrame, frame = readFrame(cap, buff, redo)
 
     # print(" ".join(labels))
 
