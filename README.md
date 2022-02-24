@@ -10,5 +10,7 @@ The label creator will take in a video and help to label each frame. It will pau
 - To change output CSV path change `OUTPUT_CSV_PATH` in `label_creator.py`
 - Press `b` to go backwards a few frames and undo labels you did. The buffer is 100 frames but you can change this.
 
-- Change filename in `sort_frames_by_type`
+### Sorting frames into folders of images
+
+- Change filename in `sort_frames_by_type.py`
 - Run `python3 sort_frames_by_type.py`
