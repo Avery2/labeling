@@ -67,11 +67,18 @@ class LabelCreator:
 
 
 if __name__ == '__main__':
-    FILENAME = "SideView"
-    VIDEO_PATH = f"data/{FILENAME}.mp4"
-    OUTPUT_CSV_PATH = f"labels/{FILENAME}.csv"
+    VIDEO_PATH_DEFAULT = "videos/pushups/SideView.mp4"
+    OUTPUT_CSV_PATH_DEFAULT = "labels/SideView.csv"
 
-    lc = LabelCreator(VIDEO_PATH)
+    # command line parsing
+    if len(sys.argv) < 3:
+        print("usage: label_creator.py video_path output_csv_path")
+        exit(1)
+
+    video_path = sys.argv[1] or VIDEO_PATH_DEFAULT
+    output_csv_path = sys.argv[2] or OUTPUT_CSV_PATH_DEFAULT
+
+    lc = LabelCreator(video_path)
     haveNextFrame, frame = lc.cap.read()
 
     # iterate over every frame
@@ -92,7 +99,7 @@ if __name__ == '__main__':
             haveNextFrame, frame = lc.nextFrame()
 
     # write data
-    with open(OUTPUT_CSV_PATH, 'w', newline='') as csvfile:
+    with open(output_csv_path, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(("Frame", "Label"))
         for i, label in enumerate(lc.labels):
