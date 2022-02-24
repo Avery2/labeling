@@ -30,14 +30,20 @@ def readFrame(cap, IMG_SIZE=(128, 128)):
 labels = []
 frame_i = 0
 #FILENAME = "SideView"
-FILENAME = "FrontView"
+#FILENAME = "FrontView"
+FILENAME = "Avery-Front"
 #VIDEO_PATH = f"data/{FILENAME}.mp4"
+
 VIDEO_PATH = f"../videos/pushups/{FILENAME}.mp4"
 OUTPUT_CSV_PATH = f"labels/{FILENAME}.csv"
 
-UP_DIR_PATH = f"pushups_split/up/"
-DOWN_DIR_PATH = f"pushups_split/down/"
-UNKNOWN_DIR_PATH = f"pushups_split/unknown/"
+MOVEMENT_DIR_PATH = "pushups_split"
+UP_DIR_PATH = f"{MOVEMENT_DIR_PATH}/up/"
+DOWN_DIR_PATH = f"{MOVEMENT_DIR_PATH}/down/"
+UNKNOWN_DIR_PATH = f"{MOVEMENT_DIR_PATH}/unknown/"
+
+if not os.path.exists(MOVEMENT_DIR_PATH):
+    os.mkdir(MOVEMENT_DIR_PATH)
 
 if not os.path.exists(UP_DIR_PATH):
     os.makedirs(UP_DIR_PATH)
@@ -53,7 +59,7 @@ movement_labels = pd.read_csv(OUTPUT_CSV_PATH)
 
 if __name__ == '__main__':
 
- #   print(movement_labels)
+    print(movement_labels)
     cap = cv.VideoCapture(VIDEO_PATH)
     start = time.time()
 
@@ -63,6 +69,7 @@ if __name__ == '__main__':
     while(cap.isOpened()):
         ret, origFrame, _, _ = readFrame(cap)
         if not ret:
+            print(f"{count} frames processed")
             break
        # cv.imshow(f"input", origFrame)
         # if set to 0 will only move forward when something is pressed
@@ -75,12 +82,19 @@ if __name__ == '__main__':
         #labels.append(chr(pressedKey & 0xFF))
        # frame_i += 1
 
-        if movement_labels["Label"][count] == "0":
-            cv.imwrite(f"{UNKNOWN_DIR_PATH}frame_{count}.jpg", origFrame)
-        elif movement_labels["Label"][count] == "2":
-            cv.imwrite(f"{UP_DIR_PATH}frame_{count}.jpg", origFrame)
-        elif movement_labels["Label"][count] == "1":
-            cv.imwrite(f"{DOWN_DIR_PATH}frame_{count}.jpg", origFrame)
+        if str(movement_labels["Label"][count]) == "0":
+          #  print("writing down")
+            cv.imwrite(f"{DOWN_DIR_PATH}{FILENAME}_frame_{count}.jpg", origFrame)
+        elif str(movement_labels["Label"][count]) == "1":
+           # print("writing up")
+            cv.imwrite(f"{UP_DIR_PATH}{FILENAME}_frame_{count}.jpg", origFrame)
+        elif str(movement_labels["Label"][count]) == "2":
+           # print("writing unknown")
+
+            cv.imwrite(f"{UNKNOWN_DIR_PATH}{FILENAME}_frame_{count}.jpg", origFrame)
+      
+        # else:
+        #     print("not writing anything")
         count += 1
 
     end = time.time()
