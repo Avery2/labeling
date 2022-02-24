@@ -13,5 +13,5 @@ Usage: `python label_creator.py video_path output_csv_path`
 
 Usage: `sort_frames_by_type.py video_path csv_path movement_dir_path labels`
 
-- Change filename in `sort_frames_by_type.py`
+- `labels` shouold be a length 3 string are by default `012`
 - Run `python3 sort_frames_by_type.py`
