@@ -15,9 +15,15 @@ def printOverwrite(s: str) -> None:
     sys.stdout.flush()
 
 
-def label_video( ARG_DICT, video_path: str, entity_video:str) -> None:
-    lc = LabelCreator(video_path)
-    haveNextFrame, frame = lc.cap.read()
+def label_video( ARG_DICT, video_path: str, entity_video:str, start_time, extraction_type) -> None:
+    lc = LabelCreator(video_path, start_time, extraction_type = extraction_type)
+
+    try:
+        haveNextFrame, frame = lc.cap.read()
+    except:
+        print("Error reading video file. Please check that the file exists and is a video file.")
+        return
+
 
 
     # # iterate over every frame
@@ -25,13 +31,22 @@ def label_video( ARG_DICT, video_path: str, entity_video:str) -> None:
     while(lc.cap.isOpened()): 
         if not haveNextFrame:
             break
+        cv.putText(frame,f'{lc.frameNum}', (50,50), cv.FONT_HERSHEY_SIMPLEX, 3, (0,0,255), 2)
+
         cv.imshow(f"input", frame)
         pressedKey = cv.waitKey(0)  # if set to 0 will only move forward when something is pressed
-        printOverwrite(f"Pressed key {chr(pressedKey & 0xFF)} {lc.frameNum} {len(lc.labels)}")
+
+        ## TODO: print overwrite does nto work 
+        # printOverwrite(f"Pressed key {chr(pressedKey & 0xFF)} {lc.frameNum} {len(lc.labels)}")
 
         # handle keypress
         if pressedKey & 0xFF == ord('q'):
+            
             break
+        if pressedKey & 0xFF == ord('e'):
+            print("user requesting to end")
+            lc.__del__()
+            return "END"
         elif pressedKey & 0xFF == ord('b'):
             haveNextFrame, frame = lc.undo()
         else:
@@ -43,7 +58,7 @@ def label_video( ARG_DICT, video_path: str, entity_video:str) -> None:
 
     entity_name = entity_video.split(".")[0]
 
-    output_csv_dir_path = os.path.join("/".join(ARG_DICT["output_directory"].split("/")[:-1]), "LABELS_CSV",session_name, ARG_DICT["movement_name"],entity_name)
+    output_csv_dir_path = os.path.join("/".join(ARG_DICT["output_directory"].split("/")[:-1]), "LABELS_CSV",session_name, lc.extractionType, ARG_DICT["movement_name"],entity_name)
 
     if not os.path.exists(output_csv_dir_path):
         os.makedirs(output_csv_dir_path)
@@ -59,15 +74,20 @@ def label_video( ARG_DICT, video_path: str, entity_video:str) -> None:
 class LabelCreator:
     """Creates label for video."""
 
-    def __init__(self, videoPath, buffSize=50):
+    def __init__(self, videoPath, start_time, extraction_type, buffSize=50):
         self.labels = []
         self.buffer = []
         self.redo = []
         self.frameNum = 0
         self.buffSize = buffSize
-        self.cap = cv.VideoCapture(videoPath)
-        self.start_time = time.time()
+        self.extractionType = extraction_type
+        try:
+            print("file exists?", os.path.exists(videoPath))
 
+            self.cap = cv.VideoCapture(videoPath)
+        except:
+            print(f"[labelCreator::init] Error opening video file {videoPath}")
+        self.start_time = start_time
     def readFrame(self):
         """Reads and returns the next frame using cap from cv2.VideoCapture"""
         if (self.redo):
